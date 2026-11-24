@@ -2,13 +2,18 @@
  * Host-mock smoke test: drive `apply()` with a fake cordis context and check what it registered.
  * This is the closest thing to a running host available in the sandbox (the real one needs a restart).
  */
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { apply, internals } from '../lib/index.js';
 
-const CWD = 'C:\\Users\\tuson\\Desktop\\zy';
+// Self-contained: the whole reading flow runs in a throwaway workspace inside the repo, so the test
+// works on a fresh clone and in CI (no pre-built project, no absolute paths).
+const ROOT = process.cwd();
+const CWD = join(ROOT, '.tmp', 'ws');
+rmSync(CWD, { recursive: true, force: true });
+mkdirSync(CWD, { recursive: true });
 // The sandbox cannot write the real ~/.dsh, so the token registry gets a workspace home.
-process.env.DSH_HOME = join(CWD, '.tmp', 'dshhome');
+process.env.DSH_HOME = join(CWD, 'dshhome');
 const tools = [];
 const commands = [];
 const routes = [];
@@ -115,6 +120,15 @@ console.log('skill content starts:', JSON.stringify(got.content.slice(0, 80)));
 const exec = { agent: { session: { header: { cwd: CWD } } }, signal: new AbortController().signal };
 const byName = Object.fromEntries(tools.map((t) => [t.name, t]));
 
+const status0 = await byName.unfold_status.execute({}, exec);
+console.log('\n[status: fresh workspace]\n' + status0.text);
+
+const ingested = await byName.unfold_ingest.execute(
+  { files: [join(ROOT, 'vendor', 'test.pdf')], name: 'attention', title: 'Attention' },
+  exec,
+);
+console.log('\n[ingest]\n' + ingested.text);
+
 const status = await byName.unfold_status.execute({}, exec);
 console.log('\n[status]\n' + status.text);
 
@@ -124,7 +138,7 @@ console.log('\n[read p.2]\n' + read.text.slice(0, 400) + '\n…');
 const search = await byName.unfold_search.execute({ project: 'attention', query: 'attention mechanisms', limit: '3' }, exec);
 console.log('\n[search]\n' + search.text);
 
-const notes = readFileSync('C:\\Users\\tuson\\Desktop\\zy\\dsh-unfold\\dev\\demo-attention.json', 'utf8');
+const notes = readFileSync(join(ROOT, 'dev', 'demo-attention.json'), 'utf8');
 const built = await byName.unfold_build.execute({ project: 'attention', notes }, exec);
 console.log('\n[build]\n' + built.text);
 

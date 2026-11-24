@@ -1,0 +1,31 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ['20', '22']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+
+      # No install step: the plugin has no runtime dependencies, and the tests only use node: builtins.
+      - name: Syntax check every module
+        run: for f in lib/*.js; do node --check "$f"; done
+
+      - name: Host-mock harness (tools, skill, bridge, auth, disposal)
+        run: node dev/t-apply.mjs
+
+      # Screenshot rendering needs the bundled Windows pdfium; on Linux the build still has to
+      # succeed with citations rendered as text. If that ever stops being true, this step fails.
+      - name: Package tarball has no stray files
+        run: npm pack --dry-run --cache .tmp/npm-cache

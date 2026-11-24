@@ -1,0 +1,37 @@
+name: release
+
+# Publish on a version tag. The tag and package.json version must agree, otherwise a mistyped tag
+# silently ships the previous version.
+on:
+  push:
+    tags: ['v*']
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # npm provenance
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: https://registry.npmjs.org
+
+      - name: Tag matches package.json
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          version="$(node -p "require('./package.json').version")"
+          echo "tag=$tag version=$version"
+          test "$tag" = "$version"
+
+      - name: Test before publishing
+        run: |
+          for f in lib/*.js; do node --check "$f"; done
+          node dev/t-apply.mjs
+
+      - name: Publish
+        run: npm publish --provenance --access public --cache .tmp/npm-cache
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
