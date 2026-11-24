@@ -34,15 +34,15 @@
     "offline-html",
     "edge-tts"
   ],
-  "author": "tuson",
+  "author": "songlitu324",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_GITHUB/dsh-unfold.git"
+    "url": "git+https://github.com/songlitu324/dsh-unfold.git"
   },
-  "homepage": "https://github.com/YOUR_GITHUB/dsh-unfold#readme",
+  "homepage": "https://github.com/songlitu324/dsh-unfold#readme",
   "bugs": {
-    "url": "https://github.com/YOUR_GITHUB/dsh-unfold/issues"
+    "url": "https://github.com/songlitu324/dsh-unfold/issues"
   },
   "engines": {
     "node": ">=20"
