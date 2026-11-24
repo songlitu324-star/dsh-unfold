@@ -1,0 +1,15 @@
+# Scratch: test output, pruned files, generated notes land here
+.tmp/
+
+# Downloaded archives — the extracted copy in vendor/ is what we track
+*.tgz
+*.whl
+
+# Pinned DOM shim for the headless page test, re-created by dev/fetch-dom-pinned.mjs
+vendor/dom/
+
+# Local tooling that pnpm may drop in
+/node_modules/
+
+# Reading projects are user data, never part of the plugin
+.unfold/

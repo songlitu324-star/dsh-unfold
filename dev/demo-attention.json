@@ -1,0 +1,131 @@
+{
+  "title": "注意力为什么能并行",
+  "subtitle": "从「序列模型必须一个一个算」到 Transformer 的答案：一份只看主线的讲义",
+  "goal": "能讲清楚注意力机制为什么允许并行，以及这和循环网络到底差在哪",
+  "start": "知道 RNN 是循环结构，但说不清它慢在哪、注意力换掉了什么",
+  "path": [
+    { "title": "先看清循环网络的硬约束", "why": "不承认「串行是结构决定的」，后面所有的设计都会看着像多余的花招" },
+    { "title": "注意力已经把距离抹平了", "why": "原文第 1 节明确说注意力能建模任意距离的依赖，但当时还被拴在循环上" },
+    { "title": "Transformer 把循环整个拿掉", "why": "这是全篇的转折点：不是优化循环，而是不用循环" }
+  ],
+  "sections": [
+    {
+      "id": "s1",
+      "level": 1,
+      "title": "循环网络的慢是结构决定的，不是实现问题",
+      "summary": "每一步都要等上一步，所以一句话里第 5 个词必须等前 4 个词算完。",
+      "blocks": [
+        {
+          "id": "b1",
+          "kind": "p",
+          "md": "先承认一件事：循环网络慢，不是代码写得不好。它生成第 $t$ 个隐藏状态时，必须用到第 $t-1$ 个隐藏状态，于是一条序列在时间上被锁成一条链，无法在一条样本内部并行。",
+          "cites": [
+            {
+              "doc": "p1",
+              "page": 2,
+              "quote": "This inherently sequential nature precludes parallelization within training examples, which becomes critical at longer sequence lengths, as memory constraints limit batching across examples."
+            }
+          ]
+        },
+        {
+          "id": "b2",
+          "kind": "key",
+          "md": "**要并行，就得让每个位置的计算不再依赖上一个位置。** 这是整篇论文的设计约束，后面所有结构都是为它服务的。"
+        },
+        {
+          "id": "b3",
+          "kind": "note",
+          "md": "注意作者的措辞：不是「并行更快的」，是「这种串行性**排除了**样本内并行」。前者是工程优化，后者是结构性限制。"
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "level": 1,
+      "title": "注意力本来就能跨任意距离，但它还被拴在循环上",
+      "summary": "注意力解决的是「距离」问题，不是「并行」问题——这正是本文要补的那一步。",
+      "blocks": [
+        {
+          "id": "b4",
+          "kind": "p",
+          "md": "在 Transformer 之前，注意力已经是序列模型的标准配件。它的本事是：两个位置不管隔多远，相关度都能直接算出来，不必像卷积那样一层层往外传。",
+          "cites": [
+            {
+              "doc": "p1",
+              "page": 2,
+              "quote": "Attention mechanisms have become an integral part of compelling sequence modeling and transduction models in various tasks, allowing modeling of dependencies without regard to their distance in the input or output sequences"
+            }
+          ]
+        },
+        {
+          "id": "b5",
+          "kind": "def",
+          "md": "**自注意力（self-attention）**：一句话里的每个位置，分别和同一句话的所有位置算相关度，再按相关度加权求和。因为所有位置地位相同、互不依赖，所以可以一次算完。",
+          "cites": [
+            {
+              "doc": "p1",
+              "page": 2,
+              "quote": "Self-attention, sometimes called intra-attention is an attention mechanism relating different positions of a single sequence in order to compute a representation of the sequence."
+            }
+          ],
+          "note": "「所有位置地位相同」是能并行的关键；代价是它天生不知道谁在前谁在后，所以还需要位置编码。"
+        },
+        {
+          "id": "b6",
+          "kind": "ask",
+          "md": "既然自注意力对所有位置一视同仁，那它怎么知道「猫追狗」和「狗追猫」不是一回事？"
+        }
+      ]
+    },
+    {
+      "id": "s3",
+      "level": 1,
+      "title": "把循环整个拿掉，训练时间从「天」变成「小时」",
+      "summary": "Transformer 是第一个完全靠自注意力、不用循环也不用卷积的转导模型。",
+      "blocks": [
+        {
+          "id": "b7",
+          "kind": "p",
+          "md": "作者的结论很直接：既然每个位置都能同时看到所有位置，那就不必再一层层传了。整个模型只靠注意力拉取全局依赖。",
+          "cites": [
+            {
+              "doc": "p1",
+              "page": 2,
+              "quote": "In this work we propose the Transformer, a model architecture eschewing recurrence and instead relying entirely on an attention mechanism to draw global dependencies between input and output."
+            }
+          ]
+        },
+        {
+          "id": "b8",
+          "kind": "key",
+          "md": "**并行的收益是可以量出来的**：原文说这个模型在八块 P100 上训练十二小时，就达到了当时最好的翻译质量。",
+          "cites": [
+            {
+              "doc": "p1",
+              "page": 2,
+              "quote": "The Transformer allows for significantly more parallelization and can reach a new state of the art in translation quality after being trained for as little as twelve hours on eight P100 GPUs."
+            }
+          ]
+        },
+        {
+          "id": "b9",
+          "kind": "ask",
+          "md": "如果并行是唯一目标，为什么不用卷积堆深一点？作者在第 2 节里给了答案——你先想想再往下看。"
+        }
+      ]
+    }
+  ],
+  "lecture": [
+    { "block": "b1", "say": "循环网络慢，不是写得不好。它每一步都得等上一步算完，这句话里的第五个词，必须等前四个词。" },
+    { "block": "b2", "say": "所以整篇论文的约束只有一条：让每个位置的计算，不再依赖上一个位置。", "point": true },
+    { "block": "b4", "say": "但光有注意力还不够。注意力解决的是「距离」，不是「并行」——它当时还被拴在循环网络上。" },
+    { "block": "b5", "say": "自注意力把这个链条剪断了：一句话摊开，每个词同时看所有词。没有上一步，所以能并行。", "point": true },
+    { "block": "b6", "say": "代价是它分不清先后。这就是位置编码存在的理由，先记住这个矛盾。" },
+    { "block": "b8", "say": "收益不是感觉，是数字：八块 P100，十二小时，当时最好的翻译质量。", "point": true, "anim": "轻快记录" }
+  ],
+  "quiz": [
+    { "q": "循环网络的「串行」具体发生在哪一步？", "a": "生成第 t 个隐藏状态需要第 t-1 个隐藏状态，所以同一条样本内部不能并行。" },
+    { "q": "自注意力为什么能并行？", "a": "每个位置只和输入序列里所有位置做相关度计算，彼此不依赖，可以一次矩阵乘算完。" },
+    { "q": "自注意力丢了什么信息，用什么补回来？", "a": "丢了位置/顺序信息，用位置编码（positional encoding）补回。" }
+  ]
+}

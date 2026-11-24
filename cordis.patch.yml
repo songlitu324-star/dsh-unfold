@@ -1,0 +1,5 @@
+# Patch layer for the dsh-unfold bundle: one insert entry is enough.
+- insert:
+    - id: dsh-unfold
+      name: 'dsh-unfold'
+      config: {}

@@ -1,0 +1,61 @@
+{
+  "name": "dsh-unfold",
+  "version": "0.1.0",
+  "description": "unfold for DeepSeek Harness — hand the agent a few PDFs and get one offline lecture HTML: a shortest route through what you are missing, every claim one hover away from a screenshot of the original page, and a lecture mode that can drive the desktop pet's bubble.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "lib",
+    "assets",
+    "skills",
+    "vendor/package/legacy/build/pdf.min.mjs",
+    "vendor/package/legacy/build/pdf.worker.min.mjs",
+    "vendor/package/cmaps",
+    "vendor/package/standard_fonts",
+    "vendor/package/LICENSE",
+    "vendor/pylib",
+    "cordis.patch.yml",
+    "THIRD_PARTY_NOTICES.md",
+    "LICENSE",
+    "README.md"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "pdf",
+    "reading",
+    "lecture",
+    "study",
+    "offline-html",
+    "edge-tts"
+  ],
+  "author": "tuson",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/YOUR_GITHUB/dsh-unfold.git"
+  },
+  "homepage": "https://github.com/YOUR_GITHUB/dsh-unfold#readme",
+  "bugs": {
+    "url": "https://github.com/YOUR_GITHUB/dsh-unfold/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "engines": {
+      "dsh": ">=0.2.0-rc.2"
+    }
+  }
+}
