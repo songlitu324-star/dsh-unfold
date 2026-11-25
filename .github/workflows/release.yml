@@ -13,6 +13,10 @@ jobs:
     permissions:
       contents: write # create the Release and upload the tarball
       id-token: write # npm provenance
+    # Job-level so the npm step can ask `env.NPM_TOKEN != ''`: the `secrets` context is not
+    # available inside a step-level `if` (GitHub rejects the whole workflow file if you try).
+    env:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -56,7 +60,7 @@ jobs:
 
       - name: Publish to npm
         # npm 还没发布成功（账号曾被临时风控）；配好 NPM_TOKEN 后这一步自然生效，不配就跳过。
-        if: ${{ secrets.NPM_TOKEN != '' }}
+        if: env.NPM_TOKEN != ''
         run: npm publish --provenance --access public --cache .tmp/npm-cache
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
