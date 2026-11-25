@@ -11,16 +11,12 @@
 
 ## 30 秒上手
 
-1. 在 DSH profile（`~/.dsh/profiles/desktop`）里加一行依赖，重启 DSH：
-
-   ```jsonc
-   // package.json：dependencies 里加，bundles 里也加上名字
-   { "dependencies": { "dsh-unfold": "^0.1.0" },
-     "dsh": { "profile": { "bundles": [ /* …, */ "dsh-unfold" ] } } }
-   ```
+1. 在 DSH profile（`~/.dsh/profiles/desktop`）里装它，并让宿主加载（完整说明见[装](#装)），重启 DSH：
 
    ```bash
-   pnpm install && # 重启 DSH（托盘右键 Quit，再启动）
+   cd ~/.dsh/profiles/desktop
+   pnpm add github:songlitu324-star/dsh-unfold
+   # 再把 "dsh-unfold" 加进 profile package.json 的 dsh.profile.bundles 数组
    ```
 
 2. 在新对话里把几篇 PDF 拖进去，说一句：
@@ -45,15 +41,35 @@
 
 插件目录就是包本身（纯 JS，无需构建，运行时零 npm 依赖）。
 
-**A. 从 npm 装**（推荐，见上面 30 秒上手）
+**A. 从 GitHub 装**（现在就能用，不需要等 npm）
 
 ```bash
-# 在 profile 目录
-pnpm add dsh-unfold
-# 然后把它加进 profile package.json 的 dsh.profile.bundles，重启
+cd ~/.dsh/profiles/desktop
+
+# 1) 拉进 profile 的 node_modules
+pnpm add github:songlitu324-star/dsh-unfold
+
+# 2) profile 的 package.json 里登记，否则宿主不会加载它
+#    dependencies 里会自动多出 "dsh-unfold": "github:songlitu324-star/dsh-unfold"
+#    dsh.profile.bundles 数组末尾加上 "dsh-unfold"
+
+# 3) 重启 DSH（托盘右键 Quit，再启动）
 ```
 
-**B. 从本地目录装**（改代码时用，避免一次全量 install）
+想要固定版本就把 `github:` 换成标签：
+
+```bash
+pnpm add github:songlitu324-star/dsh-unfold#v0.1.0
+```
+
+**B. 从 npm 装**（账号解封后可用，命令更短）
+
+```bash
+cd ~/.dsh/profiles/desktop
+pnpm add dsh-unfold      # 同样要在 dsh.profile.bundles 里加 "dsh-unfold"
+```
+
+**C. 从本地目录装**（改代码时用，避免一次全量 install）
 
 ```bash
 node dev/install-link.mjs   # 改 profile package.json + 建 NTFS junction

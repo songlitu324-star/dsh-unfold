@@ -20,6 +20,7 @@
     "vendor/pylib",
     "cordis.patch.yml",
     "THIRD_PARTY_NOTICES.md",
+    "CHANGELOG.md",
     "LICENSE",
     "README.md"
   ],
