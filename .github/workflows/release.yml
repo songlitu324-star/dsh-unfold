@@ -1,16 +1,17 @@
 name: release
 
-# Publish on a version tag. The tag and package.json version must agree, otherwise a mistyped tag
-# silently ships the previous version.
+# On a version tag: build the tarball, attach it to a GitHub Release, and publish to npm if a token
+# is configured. The tag and package.json version must agree, otherwise a mistyped tag silently
+# ships the previous version.
 on:
   push:
     tags: ['v*']
 
 jobs:
-  publish:
+  release:
     runs-on: ubuntu-latest
     permissions:
-      contents: read
+      contents: write # create the Release and upload the tarball
       id-token: write # npm provenance
     steps:
       - uses: actions/checkout@v4
@@ -26,12 +27,36 @@ jobs:
           echo "tag=$tag version=$version"
           test "$tag" = "$version"
 
-      - name: Test before publishing
+      - name: Test before shipping
         run: |
           for f in lib/*.js; do node --check "$f"; done
           node dev/t-apply.mjs
 
-      - name: Publish
+      - name: Build the tarball
+        run: npm pack --cache .tmp/npm-cache
+        id: pack
+
+      - name: GitHub Release with the tarball
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dsh-unfold-*.tgz
+          generate_release_notes: true
+          body: |
+            离线讲义那一套：把几篇 PDF 交给 agent，得到一个双击就能讲的单文件 HTML。
+
+            装：
+
+            ```bash
+            cd ~/.dsh/profiles/desktop
+            pnpm add github:songlitu324-star/dsh-unfold#${{ github.ref_name }}
+            # 再把 "dsh-unfold" 加进 profile package.json 的 dsh.profile.bundles，重启 DSH
+            ```
+
+            也可以直接下这个 `.tgz`，或在 npm 上装 `dsh-unfold`。
+
+      - name: Publish to npm
+        # npm 还没发布成功（账号曾被临时风控）；配好 NPM_TOKEN 后这一步自然生效，不配就跳过。
+        if: ${{ secrets.NPM_TOKEN != '' }}
         run: npm publish --provenance --access public --cache .tmp/npm-cache
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
